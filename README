@@ -1,0 +1,7 @@
+== SMTP Email Verification
+Check in real time if an email address is a legitimate email address.
+
+How? Ask the smtp server!
+
+== Limitations
+* Some servers or email server providers will respond to any 
