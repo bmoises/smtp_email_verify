@@ -25,21 +25,21 @@ class SmtpEmailVerify
     @valid
   end
 
-  def validate_email!
-
+  # An attempt to use telnet instead of smtp
+  def _validate_email!
     raise "Please set HELO_DOMAIN and MAIL_FROM" unless defined?(HELO_DOMAIN) && defined?(MAIL_FROM)
-    smtp = Net::SMTP.start(mx_domain.to_s, 25)
-    helo_resp  = smtp.helo(HELO_DOMAIN)
-    mfrom_resp = smtp.mailfrom(MAIL_FROM)
-    begin
-      rcpto_resp = smtp.rcptto(@email)
-      @valid = true
-    rescue Net::SMTPFatalError
-      @valid = false
-    end
 
+    smtp = Net::Telnet::new("Host" => mx_domain.to_s,"Port" => 25, "Telnetmode" => true, "Prompt" => /(^250)(OK)/i)
+    # 
+    smtp.cmd("String" => "HELO #{HELO_DOMAIN}", "Match" => /\n/) {|c| print c }
+    smtp.cmd("MAIL FROM: <#{MAIL_FROM}>"){|c| print c}
+    smtp.cmd("RCPT TO: <#{@email}>"){|c| 
+      @valid =  (c =~ /ok/i  ? true : false)
+    }
+    smtp.close
+  
   end
-
+  
   def mx_domain
     @mx_resource.exchange
   end
